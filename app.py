@@ -15,7 +15,7 @@ import pickle
 import json
 import pandas as pd
 import numpy as np
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 
@@ -63,13 +63,13 @@ class FlightInput(BaseModel):
 # build features function to transform the input data into a feature vector for the model
 def build_features(flight: FlightInput) -> pd.DataFrame:
     route = f"{flight.origin}_{flight.dest}"
-
+    
     features = {
         "month": flight.month,
-        "day_of_week": flight.day_of_week,
         "day_of_month": flight.day_of_month,
-        "dep_hour": flight.dep_hour,
+        "day_of_week": flight.day_of_week,
         "distance": flight.distance,
+        "dep_hour": flight.dep_hour,
         "origin_delay_rate": app.state.feature_lookups["origin_delay_rate"].get(flight.origin, app.state.global_rate),
         "dest_delay_rate": app.state.feature_lookups["dest_delay_rate"].get(flight.dest, app.state.global_rate),
         "carrier_delay_rate": app.state.feature_lookups["carrier_delay_rate"].get(flight.carrier, app.state.global_rate),
@@ -79,7 +79,10 @@ def build_features(flight: FlightInput) -> pd.DataFrame:
         "origin_flight_count": app.state.feature_lookups["origin_flight_count"].get(flight.origin, 100),
     }
 
-    return pd.DataFrame([features])
+    df = pd.DataFrame([features])
+    # Force correct column order to match training
+    expected_order = app.state.classification_model.get_booster().feature_names
+    return df[expected_order]
 
 
 @app.post("/predict")
