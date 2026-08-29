@@ -15,6 +15,7 @@ import pickle
 import json
 import pandas as pd
 import numpy as np
+import xgboost as xgb
 from fastapi import FastAPI
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
@@ -25,10 +26,14 @@ from contextlib import asynccontextmanager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     #Loading classification and regression models and lookup tables
-    with open("models/xgb_classifier.pkl", "rb") as f:
-        app.state.classification_model = pickle.load(f)
-    with open("models/xgb_regressor.pkl", "rb") as f:
-        app.state.regression_model = pickle.load(f)
+    classification_model = xgb.XGBClassifier()
+    regression_model = xgb.XGBRegressor()
+    
+    classification_model.load_model('models/classification_model.json')
+    app.state.classification_model =  classification_model
+    regression_model.load_model('models/regressor.json')
+    app.state.regression_model = regression_model
+    
     with open("models/feature_lookups.json", "r") as f:
         app.state.feature_lookups = json.load(f)
          
