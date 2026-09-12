@@ -11,7 +11,6 @@ DOCKER → seals the API + models + lookups in a portable box
 AWS  → gives the box a public address
 """
 
-import pickle
 import json
 import pandas as pd
 import numpy as np
@@ -88,6 +87,16 @@ def build_features(flight: FlightInput) -> pd.DataFrame:
     # Force correct column order to match training
     expected_order = app.state.classification_model.get_booster().feature_names
     return df[expected_order]
+
+
+@app.get("/")
+async def root():
+    return {"status": "ok", "docs": "/docs", "predict": "POST /predict"}
+
+
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "models_loaded": hasattr(app.state, "classification_model")}
 
 
 @app.post("/predict")

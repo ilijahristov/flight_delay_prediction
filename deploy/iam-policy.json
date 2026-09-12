@@ -1,0 +1,96 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EcrLogin",
+      "Effect": "Allow",
+      "Action": "ecr:GetAuthorizationToken",
+      "Resource": "*"
+    },
+    {
+      "Sid": "EcrPushPullFlightRepo",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload",
+        "ecr:PutImage",
+        "ecr:DescribeImages",
+        "ecr:DescribeRepositories"
+      ],
+      "Resource": "arn:aws:ecr:${AWS_REGION}:${AWS_ACCOUNT_ID}:repository/flight-delay-api"
+    },
+    {
+      "Sid": "EcsTaskDefinitions",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:RegisterTaskDefinition",
+        "ecs:DescribeTaskDefinition",
+        "ecs:ListTaskDefinitions"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "EcsDeployFlightService",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:CreateService",
+        "ecs:UpdateService",
+        "ecs:DescribeServices"
+      ],
+      "Resource": "arn:aws:ecs:${AWS_REGION}:${AWS_ACCOUNT_ID}:service/${ECS_CLUSTER}/${ECS_SERVICE}"
+    },
+    {
+      "Sid": "EcsReadFlightCluster",
+      "Effect": "Allow",
+      "Action": "ecs:DescribeClusters",
+      "Resource": "arn:aws:ecs:${AWS_REGION}:${AWS_ACCOUNT_ID}:cluster/${ECS_CLUSTER}"
+    },
+    {
+      "Sid": "EcsReadTasksInFlightCluster",
+      "Effect": "Allow",
+      "Action": [
+        "ecs:ListTasks",
+        "ecs:DescribeTasks"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnEquals": { "ecs:cluster": "arn:aws:ecs:${AWS_REGION}:${AWS_ACCOUNT_ID}:cluster/${ECS_CLUSTER}" }
+      }
+    },
+    {
+      "Sid": "NetworkingRead",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeVpcs",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeNetworkInterfaces"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReadFlightApiLogs",
+      "Effect": "Allow",
+      "Action": [
+        "logs:DescribeLogStreams",
+        "logs:GetLogEvents",
+        "logs:FilterLogEvents"
+      ],
+      "Resource": [
+        "arn:aws:logs:${AWS_REGION}:${AWS_ACCOUNT_ID}:log-group:/ecs/flight-api-task",
+        "arn:aws:logs:${AWS_REGION}:${AWS_ACCOUNT_ID}:log-group:/ecs/flight-api-task:*"
+      ]
+    },
+    {
+      "Sid": "PassExecutionRoleToEcs",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole",
+      "Condition": { "StringEquals": { "iam:PassedToService": "ecs-tasks.amazonaws.com" } }
+    }
+  ]
+}

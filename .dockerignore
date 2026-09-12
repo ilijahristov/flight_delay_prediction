@@ -1,0 +1,12 @@
+.venv/
+data/
+notebooks/
+images/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+.DS_Store
+.env
+scripts/
+README.md
